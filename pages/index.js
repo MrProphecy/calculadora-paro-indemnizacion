@@ -1,20 +1,34 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export default function Home(){
   const [form, setForm] = useState({
+    modoSalario: "mensual", // mensual | anual
     salarioMensualBruto: "",
-    anios: "",
-    meses: "",
+    salarioAnualBruto: "",
+    pagas: 14,
     tipoDespido: "improcedente",
+    anios: "", meses: "",
+    hijos: 0,
     pre2012: { anios: "", meses: "" },
     baseReguladoraMensual: "",
     diasCotizados: "",
-    hijos: 0,
     irpf: 2,
     cotizacion: 4.7
   });
   const [resultado, setResultado] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const salarioMensualCalculado = useMemo(()=>{
+    if(form.modoSalario === "mensual") return Number(form.salarioMensualBruto || 0);
+    const anual = Number(form.salarioAnualBruto || 0);
+    const pagas = Number(form.pagas || 12);
+    return pagas > 0 ? anual / pagas : 0;
+  }, [form.modoSalario, form.salarioMensualBruto, form.salarioAnualBruto, form.pagas]);
+
+  const baseReguladoraAprox = useMemo(()=>{
+    const b = Number(form.baseReguladoraMensual || 0);
+    return b > 0 ? b : salarioMensualCalculado;
+  }, [form.baseReguladoraMensual, salarioMensualCalculado]);
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -33,7 +47,15 @@ export default function Home(){
       const res = await fetch("/api/calcular", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, hijos: Number(form.hijos) })
+        body: JSON.stringify({
+          salarioMensualBruto: salarioMensualCalculado,
+          tipoDespido: form.tipoDespido,
+          anios: form.anios, meses: form.meses,
+          pre2012: form.pre2012,
+          baseReguladoraMensual: baseReguladoraAprox,
+          diasCotizados: form.diasCotizados,
+          hijos: Number(form.hijos || 0)
+        })
       });
       const data = await res.json();
       setResultado(data);
@@ -60,12 +82,15 @@ export default function Home(){
     if(!resultado) return;
     const rows = [
       ["Campo","Valor"],
-      ["Salario mensual bruto", form.salarioMensualBruto],
+      ["Modo salario", form.modoSalario],
+      ["Salario mensual bruto (calculado)", salarioMensualCalculado],
+      ["Salario anual bruto", form.salarioAnualBruto],
+      ["Pagas", form.pagas],
+      ["Tipo de despido", form.tipoDespido],
       ["Antigüedad (años)", form.anios],
       ["Antigüedad (meses)", form.meses],
-      ["Tipo de despido", form.tipoDespido],
       ["Hijos a cargo", form.hijos],
-      ["Base reguladora mensual", form.baseReguladoraMensual],
+      ["Base reguladora mensual usada", baseReguladoraAprox],
       ["Días cotizados (6 años)", form.diasCotizados],
       ["IRPF %", form.irpf],
       ["Cotización %", form.cotizacion],
@@ -98,34 +123,17 @@ export default function Home(){
         <h1 className="h1">Calculadora Paro + Indemnización (España)</h1>
         <p className="sub">Cálculo <span className="badge">estimativo</span> para 2025 (IPREM 600 €/mes con 1/6). No sustituye asesoramiento profesional.</p>
 
-        <form onSubmit={onSubmit} className="grid" style={{gap:16}}>
-          <div className="grid" style={{gridTemplateColumns: "repeat(12, 1fr)", gap: 16}}>
-            <div style={{gridColumn: "span 5"}}>
-              <div className="label">
-                <span className="tooltip">Salario bruto mensual (€) <span className="tip">Con pagas prorrateadas. Úsalo también como aprox. de base reguladora si no la conoces.</span></span>
-              </div>
-              <input className="input" type="number" name="salarioMensualBruto" value={form.salarioMensualBruto} onChange={onChange} placeholder="Ej: 2200" required/>
-            </div>
-            <div style={{gridColumn: "span 2"}}>
-              <div className="label"><span className="tooltip">Antigüedad (años)<span className="tip">Años completos trabajados en la empresa.</span></span></div>
-              <input className="input" type="number" name="anios" value={form.anios} onChange={onChange} placeholder="Ej: 4" required/>
-            </div>
-            <div style={{gridColumn: "span 2"}}>
-              <div className="label"><span className="tooltip">Antigüedad (meses)<span className="tip">Meses adicionales a los años completos.</span></span></div>
-              <input className="input" type="number" name="meses" value={form.meses} onChange={onChange} placeholder="Ej: 6"/>
-            </div>
-            <div style={{gridColumn: "span 3"}}>
-              <div className="label"><span className="tooltip">Hijos a cargo<span className="tip">Afecta a los mínimos y máximos del paro (IPREM).</span></span></div>
-              <select name="hijos" className="input" value={form.hijos} onChange={onChange}>
-                <option value={0}>0</option>
-                <option value={1}>1</option>
-                <option value={2}>2 o más</option>
+        {/* BLOQUE 1: Salario + Tipo de despido */}
+        <div className="section" style={{marginBottom:16}}>
+          <div className="form-grid two">
+            <div>
+              <div className="label">Modo de salario</div>
+              <select name="modoSalario" className="input" value={form.modoSalario} onChange={onChange}>
+                <option value="mensual">Bruto mensual</option>
+                <option value="anual">Bruto anual</option>
               </select>
             </div>
-          </div>
-
-          <div className="grid" style={{gridTemplateColumns:"repeat(12, 1fr)", gap:16}}>
-            <div style={{gridColumn:"span 5"}}>
+            <div>
               <div className="label"><span className="tooltip">Tipo de despido<span className="tip">Improcedente (33 d/año), Objetivo (20 d/año), Fin de contrato (12 d/año), o Baja (0 €).</span></span></div>
               <select name="tipoDespido" className="input" value={form.tipoDespido} onChange={onChange}>
                 <option value="improcedente">Improcedente</option>
@@ -134,103 +142,149 @@ export default function Home(){
                 <option value="baja">Baja voluntaria</option>
               </select>
             </div>
-
-            <details style={{gridColumn:"span 7"}}>
-              <summary>Opciones avanzadas</summary>
-              <div className="row" style={{marginTop:12}}>
-                <div>
-                  <div className="label">Años <strong>antes</strong> del 12/02/2012</div>
-                  <input className="input" type="number" name="pre2012.anios" value={form.pre2012.anios} onChange={onChange} placeholder="Ej: 2"/>
-                </div>
-                <div>
-                  <div className="label">Meses <strong>antes</strong> del 12/02/2012</div>
-                  <input className="input" type="number" name="pre2012.meses" value={form.pre2012.meses} onChange={onChange} placeholder="Ej: 3"/>
-                </div>
-              </div>
-              <div className="row" style={{marginTop:12}}>
-                <div>
-                  <div className="label"><span className="tooltip">Base reguladora mensual (€)<span className="tip">Media de las bases de cotización de los últimos 180 días. Si no la sabes, usa el salario bruto mensual.</span></span></div>
-                  <input className="input" type="number" name="baseReguladoraMensual" value={form.baseReguladoraMensual} onChange={onChange} placeholder="Ej: 2200" required/>
-                </div>
-                <div>
-                  <div className="label"><span className="tooltip">Días cotizados (6 años)<span className="tip">Debe ser ≥ 360 para tener derecho a prestación. Determina la duración total.</span></span></div>
-                  <input className="input" type="number" name="diasCotizados" value={form.diasCotizados} onChange={onChange} placeholder="Ej: 1320" required/>
-                </div>
-              </div>
-              <div className="row" style={{marginTop:12}}>
-                <div>
-                  <div className="label"><span className="tooltip">IRPF (%)<span className="tip">Retención aproximada aplicada al paro. Personalízala según tu situación.</span></span></div>
-                  <input className="input" type="number" step="0.1" name="irpf" value={form.irpf} onChange={onChange} />
-                </div>
-                <div>
-                  <div className="label"><span className="tooltip">Cotización (%)<span className="tip">Cotización a la Seguridad Social sobre la prestación. Ajustable.</span></span></div>
-                  <input className="input" type="number" step="0.1" name="cotizacion" value={form.cotizacion} onChange={onChange} />
-                </div>
-              </div>
-            </details>
           </div>
 
-          <div className="actions">
-            <button className="btn" type="submit" disabled={loading}>{loading ? "Calculando..." : "Calcular"}</button>
-            {resultado && !resultado.error && (
-              <>
-                <button type="button" className="btn secondary" onClick={()=>window.print()}>Imprimir / Guardar PDF</button>
-                <button type="button" className="btn secondary" onClick={exportCSV}>Exportar CSV</button>
-              </>
-            )}
-          </div>
-        </form>
+          {form.modoSalario === "mensual" ? (
+            <div className="form-grid two" style={{marginTop:12}}>
+              <div>
+                <div className="label">Salario bruto <strong>mensual</strong> (€)</div>
+                <input className="input" type="number" name="salarioMensualBruto" value={form.salarioMensualBruto} onChange={onChange} placeholder="Ej: 2200" />
+              </div>
+              <div>
+                <div className="label"><span className="tooltip">Pagas (12/14)<span className="tip">Solo informativo. Para cálculos usamos el salario mensual introducido.</span></span></div>
+                <select name="pagas" className="input" value={form.pagas} onChange={onChange}>
+                  <option value={12}>12</option>
+                  <option value={14}>14</option>
+                </select>
+              </div>
+            </div>
+          ) : (
+            <div className="form-grid three" style={{marginTop:12}}>
+              <div>
+                <div className="label">Salario bruto <strong>anual</strong> (€)</div>
+                <input className="input" type="number" name="salarioAnualBruto" value={form.salarioAnualBruto} onChange={onChange} placeholder="Ej: 30000" />
+              </div>
+              <div>
+                <div className="label">Pagas</div>
+                <select name="pagas" className="input" value={form.pagas} onChange={onChange}>
+                  <option value={12}>12</option>
+                  <option value={14}>14</option>
+                </select>
+              </div>
+              <div>
+                <div className="label">Mensual (calculado)</div>
+                <input className="input" value={salarioMensualCalculado || ""} readOnly />
+              </div>
+            </div>
+          )}
+        </div>
 
+        {/* BLOQUE 2: Antigüedad + Hijos */}
+        <div className="section" style={{marginBottom:16}}>
+          <div className="form-grid three">
+            <div>
+              <div className="label">Antigüedad (años)</div>
+              <input className="input" type="number" name="anios" value={form.anios} onChange={onChange} placeholder="Ej: 4" />
+            </div>
+            <div>
+              <div className="label">Antigüedad (meses)</div>
+              <input className="input" type="number" name="meses" value={form.meses} onChange={onChange} placeholder="Ej: 6" />
+            </div>
+            <div>
+              <div className="label">Hijos a cargo</div>
+              <select name="hijos" className="input" value={form.hijos} onChange={onChange}>
+                <option value={0}>0</option>
+                <option value={1}>1</option>
+                <option value={2}>2 o más</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* BLOQUE 3: Avanzado */}
+        <details className="section">
+          <summary>Opciones avanzadas</summary>
+          <div className="form-grid two" style={{marginTop:12}}>
+            <div>
+              <div className="label">Años <strong>antes</strong> del 12/02/2012</div>
+              <input className="input" type="number" name="pre2012.anios" value={form.pre2012.anios} onChange={onChange} placeholder="Ej: 2"/>
+            </div>
+            <div>
+              <div className="label">Meses <strong>antes</strong> del 12/02/2012</div>
+              <input className="input" type="number" name="pre2012.meses" value={form.pre2012.meses} onChange={onChange} placeholder="Ej: 3"/>
+            </div>
+          </div>
+          <div className="form-grid two" style={{marginTop:12}}>
+            <div>
+              <div className="label"><span className="tooltip">Base reguladora mensual (€)<span className="tip">Si no la sabes, usamos el salario mensual (calculado).</span></span></div>
+              <input className="input" type="number" name="baseReguladoraMensual" value={form.baseReguladoraMensual} onChange={onChange} placeholder={String(baseReguladoraAprox || "")}/>
+            </div>
+            <div>
+              <div className="label"><span className="tooltip">Días cotizados (6 años)<span className="tip">≥ 360 para tener derecho a prestación.</span></span></div>
+              <input className="input" type="number" name="diasCotizados" value={form.diasCotizados} onChange={onChange} placeholder="Ej: 1320"/>
+            </div>
+          </div>
+          <div className="form-grid two" style={{marginTop:12}}>
+            <div>
+              <div className="label">IRPF (%)</div>
+              <input className="input" type="number" step="0.1" name="irpf" value={form.irpf} onChange={onChange} />
+            </div>
+            <div>
+              <div className="label">Cotización (%)</div>
+              <input className="input" type="number" step="0.1" name="cotizacion" value={form.cotizacion} onChange={onChange} />
+            </div>
+          </div>
+        </details>
+
+        {/* ACCIONES */}
+        <div className="actions" style={{marginTop:16}}>
+          <button className="btn" onClick={onSubmit} disabled={loading}>{loading ? "Calculando..." : "Calcular"}</button>
+          {resultado && !resultado.error && (
+            <>
+              <button type="button" className="btn secondary" onClick={()=>window.print()}>Imprimir / Guardar PDF</button>
+              <button type="button" className="btn secondary" onClick={exportCSV}>Exportar CSV</button>
+            </>
+          )}
+        </div>
+
+        {/* RESULTADOS */}
         {resultado && !resultado.error && (
-          <div style={{marginTop:20}}>
+          <div style={{marginTop:18}}>
             <div className="kpi">
               <div className="box">
                 <div className="label">Indemnización estimada</div>
-                <div style={{fontSize:28, fontWeight:800}}>{number(resultado.indemnizacion || 0)}</div>
+                <div style={{fontSize:26, fontWeight:800}}>{number(resultado.indemnizacion || 0)}</div>
                 <div className="small">Topes: 24 mensualidades (improcedente); 12 (objetivo).</div>
               </div>
               <div className="box">
                 <div className="label">Duración total del paro</div>
-                <div style={{fontSize:28, fontWeight:800}}>{resultado.paro?.duracionDias || 0} días</div>
+                <div style={{fontSize:26, fontWeight:800}}>{resultado.paro?.duracionDias || 0} días</div>
                 <div className="small">Según días cotizados SEPE.</div>
               </div>
             </div>
 
-            <div className="grid" style={{gridTemplateColumns:"repeat(12,1fr)", gap:16, marginTop:16}}>
-              <div className="result" style={{gridColumn:"span 6"}}>
+            <div className="form-grid two" style={{marginTop:12}}>
+              <div className="result">
                 <div className="label">Paro (primeros 180 días)</div>
-                <div style={{fontSize:22, fontWeight:700}}>{number(resultado.paro?.importeTramo1 || 0)} /mes</div>
-                {resultadoConNeto && <div className="small">Neto aprox: {number(resultadoConNeto.neto1)} /mes</div>}
-                <div className="small">Meses: {resultado.paro?.mesesTramo1}</div>
+                <div style={{fontSize:20, fontWeight:700}}>{number(resultado.paro?.importeTramo1 || 0)} /mes</div>
+                <div className="small">Neto aprox: {number((resultadoConNeto?.neto1)||0)} /mes — Meses: {resultado.paro?.mesesTramo1}</div>
               </div>
-              <div className="result" style={{gridColumn:"span 6"}}>
+              <div className="result">
                 <div className="label">Paro (resto)</div>
-                <div style={{fontSize:22, fontWeight:700}}>{number(resultado.paro?.importeTramo2 || 0)} /mes</div>
-                {resultadoConNeto && <div className="small">Neto aprox: {number(resultadoConNeto.neto2)} /mes</div>}
-                <div className="small">Meses: {resultado.paro?.mesesTramo2}</div>
+                <div style={{fontSize:20, fontWeight:700}}>{number(resultado.paro?.importeTramo2 || 0)} /mes</div>
+                <div className="small">Neto aprox: {number((resultadoConNeto?.neto2)||0)} /mes — Meses: {resultado.paro?.mesesTramo2}</div>
               </div>
             </div>
 
-            <div className="grid" style={{gridTemplateColumns:"repeat(12,1fr)", gap:16, marginTop:16}}>
-              <div className="result" style={{gridColumn:"span 6"}}>
-                <div className="label">Total estimado a percibir por paro (bruto)</div>
-                <div style={{fontSize:22, fontWeight:700}}>{number(resultado.paro?.totalEstimado || 0)}</div>
+            <div className="form-grid two" style={{marginTop:12}}>
+              <div className="result">
+                <div className="label">Total estimado por paro (bruto)</div>
+                <div style={{fontSize:20, fontWeight:700}}>{number(resultado.paro?.totalEstimado || 0)}</div>
               </div>
-              <div className="result" style={{gridColumn:"span 6"}}>
-                <div className="label">Total estimado a percibir por paro (neto aprox.)</div>
-                <div style={{fontSize:22, fontWeight:700}}>{number(resultadoConNeto?.totalNeto || 0)}</div>
+              <div className="result">
+                <div className="label">Total estimado por paro (neto aprox.)</div>
+                <div style={{fontSize:20, fontWeight:700}}>{number((resultadoConNeto?.totalNeto)||0)}</div>
               </div>
-            </div>
-
-            <hr />
-            <div className="notice">
-              <ul>
-                <li>IPREM mensual 600 € con incremento de 1/6 para mínimos y máximos.</li>
-                <li>Prestación contributiva: 70% (primeros 180 días) y 60% el resto.</li>
-                <li>Duración según días cotizados en los últimos 6 años.</li>
-                <li>Los netos son una aproximación configurable con tus % de IRPF y cotización.</li>
-                <li>Herramienta orientativa; contrasta en el simulador oficial del SEPE.</li>
-              </ul>
             </div>
           </div>
         )}
@@ -242,7 +296,7 @@ export default function Home(){
           </div>
         )}
 
-        <div className="footer">
+        <div className="footer" style={{marginTop:16}}>
           Hecho con ❤️ para Viking | ExtractDataHub · Next.js en Vercel
         </div>
       </div>
