@@ -366,6 +366,85 @@ export default function Home(){
         )}
 
         <div className="footer" style={{marginTop:16}}>
+              Cómo usar la calculadora
+              
+              La pantalla principal está dividida en bloques claros:
+              
+              🔹 Bloque 1: Salario + Tipo de despido
+              
+              Modo de salario: elige si introduces tu bruto mensual o bruto anual.
+              
+              Salario bruto mensual → si cobras siempre lo mismo cada mes.
+              
+              Salario bruto anual + Nº de pagas (12/14) → si tu sueldo se expresa como anual.
+              → La app calcula automáticamente el mensual equivalente.
+              
+              Tipo de despido: selecciona Improcedente, Objetivo, Fin de contrato o Baja voluntaria.
+              
+              🔹 Bloque 2: Antigüedad + Hijos
+              
+              Años y meses trabajados en la empresa.
+              
+              Hijos a cargo: afecta a los mínimos y máximos de prestación (IPREM).
+              
+              🔹 Bloque 3: Opciones avanzadas
+              
+              Tiempo trabajado antes del 12/02/2012: necesario porque antes eran 45 días por año en despido improcedente.
+              
+              Base reguladora mensual: si no la sabes, se usará tu salario mensual calculado.
+              
+              Días cotizados últimos 6 años: determina la duración del paro (mínimo 360).
+              
+              IRPF % y Cotización %: aplicados para calcular un neto aproximado de la prestación.
+              
+              🔹 Bloque 4: Acciones
+              
+              Calcular: ejecuta los cálculos.
+              
+              Imprimir/Guardar PDF: genera un PDF con los resultados.
+              
+              Exportar CSV: descarga un Excel/CSV con todos los valores introducidos y resultados.
+              
+              🔹 Bloque 5: Resultados
+              
+              Indemnización estimada: según tu antigüedad y tipo de despido (con topes legales).
+              
+              Duración total del paro: días de prestación según lo cotizado.
+              
+              Paro primeros 180 días (70%) y resto (60%) → en bruto y neto aprox.
+              
+              Total estimado por paro (bruto/neto).
+              
+              3. Ejemplo de uso
+              
+              Seleccionas Salario anual: 30.000 € con 14 pagas → la calculadora lo convierte en ~2.142 €/mes.
+              
+              Antigüedad: 5 años y 6 meses.
+              
+              Despido objetivo.
+              
+              Hijos: 1.
+              
+              Días cotizados: 1.200.
+              
+              Resultado:
+              
+              Indemnización ~ 18.000 €.
+              
+              Paro durante 360 días.
+              
+              Primeros 6 meses: 1.200 €/mes aprox.
+              
+              Neto aprox. aplicando IRPF y cotización: ~1.050 €/mes.
+              
+              4. Avisos importantes
+              
+              Es un cálculo estimativo, no sustituye al simulador oficial del SEPE ni al asesoramiento profesional.
+              
+              Los topes legales (24 mensualidades en improcedente, 12 en objetivo) ya están aplicados.
+              
+              La parte neta depende de tu situación fiscal exacta → ajusta IRPF y cotización manualmente.
+                
           El cálculo es reflejado según los datos actuales disponibles a fecha de 09/2025 ,aún así no sustituye asesoramiento profesional. | Viking V.1 - 2025 | ExtractDataHub · Next.js en Vercel
         </div>
       </div>
