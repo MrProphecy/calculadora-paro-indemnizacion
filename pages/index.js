@@ -203,7 +203,7 @@ export default function Home(){
 
         {/* BLOQUE 3: Avanzado */}
         <details className="section">
-          <summary>Opciones avanzadas</summary>
+          <summary>Prestación por Desempleo :Para el cálculo aproximado de la prestación por desempleo se debe colocar la cantidad de días cotizados (máximo 6 años) </summary>
           <div className="form-grid two" style={{marginTop:12}}>
             <div>
               <div className="label">Años <strong>antes</strong> del 12/02/2012</div>
