@@ -297,8 +297,7 @@ export default function Home(){
         )}
 
         <div className="footer" style={{marginTop:16}}>
-          El cálculo es reflejado según los datos actuales disponibles a fecha de 09/2025 , aún así, No sustituye asesoramiento profesional.
-                               Viking V.1 - 2025 | ExtractDataHub · Next.js en Vercel
+          El cálculo es reflejado según los datos actuales disponibles a fecha de 09/2025 ,aún así no sustituye asesoramiento profesional. | Viking V.1 - 2025 | ExtractDataHub · Next.js en Vercel
         </div>
       </div>
     </div>
