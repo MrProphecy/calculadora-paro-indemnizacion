@@ -121,7 +121,7 @@ export default function Home(){
     <div className="container">
       <div className="card">
         <h1 className="h1">Calculadora Paro + Indemnización (España)</h1>
-        <p className="sub">Cálculo estimativo (IPREM 600 €/mes con 1/6). No sustituye asesoramiento profesional.</p>
+        <p className="sub">Cálculo estimativo. No sustituye asesoramiento profesional.</p>
 
         {/* BLOQUE 1: Salario + Tipo de despido */}
         <div className="section" style={{marginBottom:16}}>
