@@ -120,9 +120,7 @@ export default function Home(){
   return (
     <div className="container">
       <div className="card">
-        <h1 className="h1">Calculadora Paro + Indemnización (España)</h1>
-        <p className="sub">Cálculo estimativo. No sustituye asesoramiento profesional.</p>
-
+        <h1 className="h1">Calculadora de Indemnización / Paro (España)</h1>
         {/* BLOQUE 1: Salario + Tipo de despido */}
         <div className="section" style={{marginBottom:16}}>
           <div className="form-grid two">
