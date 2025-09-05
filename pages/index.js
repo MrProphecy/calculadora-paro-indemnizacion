@@ -1,3 +1,49 @@
+// --- BMC: botón simple reutilizable
+function BuyCoffeeButton({
+  label = "☕ Invítame un café",
+  className = "",
+}: { label?: string; className?: string }) {
+  const id = process.env.NEXT_PUBLIC_BMC_ID || "vikingold";
+  return (
+    <a
+      href={`https://www.buymeacoffee.com/${id}?utm_source=calc_paro`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`inline-flex items-center rounded-xl px-4 py-2 font-semibold text-white`}
+      style={{ background: "#5F7FFF" }}
+    >
+      {label}
+    </a>
+  );
+}
+
+// --- BMC: widget flotante global (carga el script una vez)
+import { useEffect } from "react";
+function BuyCoffeeWidget() {
+  useEffect(() => {
+    const id = process.env.NEXT_PUBLIC_BMC_ID || "vikingold";
+    // evita duplicar
+    if (document.querySelector('script[data-name="BMC-Widget"]')) return;
+
+    const s = document.createElement("script");
+    s.setAttribute("data-name", "BMC-Widget");
+    s.src = "https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js";
+    s.setAttribute("data-id", id);
+    s.setAttribute("data-description", "Apoya el proyecto");
+    s.setAttribute("data-message", "¿Te sirvió la calculadora? ¡Invítame un café!");
+    s.setAttribute("data-color", "#5F7FFF");
+    s.setAttribute("data-position", "Right");
+    s.setAttribute("data-x_margin", "18");
+    s.setAttribute("data-y_margin", "18");
+    s.async = true;
+    document.body.appendChild(s);
+    return () => {
+      // si esta página unmounta, limpia el script
+      if (s && s.parentNode) s.parentNode.removeChild(s);
+    };
+  }, []);
+  return null;
+}
 import { useMemo, useState } from "react";
 
 export default function Home(){
