@@ -16,6 +16,74 @@ function BuyCoffeeButton({
     </a>
   );
 }
+export default function Home(){
+  // ...tu estado y lógica tal cual
+
+  return (
+    <div className="container">
+      {/* BMC: widget flotante global */}
+      <BuyCoffeeWidget />
+
+      <div className="card">
+        <h1 className="h1">Calculadora de Indemnización / Paro (España)</h1>
+
+        {/* ...todo tu formulario y acciones... */}
+
+        {/* RESULTADOS */}
+        {resultado && !resultado.error && (
+          <div style={{marginTop:18}}>
+            {/* --- tus KPIs existentes --- */}
+            <div className="kpi">
+              <div className="box">
+                <div className="label">Indemnización estimada</div>
+                <div style={{fontSize:26, fontWeight:800}}>{number(resultado.indemnizacion || 0)}</div>
+                <div className="small">Topes: 24 mensualidades (improcedente); 12 (objetivo).</div>
+              </div>
+              <div className="box">
+                <div className="label">Duración total del paro</div>
+                <div style={{fontSize:26, fontWeight:800}}>{resultado.paro?.duracionDias || 0} días</div>
+                <div className="small">Según días cotizados SEPE.</div>
+              </div>
+            </div>
+
+            {/* ...resto de tus bloques de resultado... */}
+
+            {/* --- CTA Buy Me a Coffee (sólo con resultado) --- */}
+            <div
+              className="result"
+              style={{
+                marginTop:16,
+                padding:16,
+                borderRadius:12,
+                border:"1px solid rgba(255,255,255,0.08)",
+                background:"rgba(95,127,255,0.08)"
+              }}
+            >
+              <div className="label" style={{marginBottom:8}}>
+                ¿Te ayudó esta calculadora?
+              </div>
+              <p className="small" style={{opacity:0.85, marginBottom:12}}>
+                Si te sirvió para estimar tu indemnización o la prestación, puedes apoyar el proyecto para que siga online y mejorando.
+              </p>
+              <BuyCoffeeButton />
+            </div>
+          </div>
+        )}
+
+        {resultado && resultado.error && (
+          <div className="result" style={{marginTop:16}}>
+            <div className="label">Error</div>
+            <div>{resultado.detail || "Revisa los datos de entrada"}</div>
+          </div>
+        )}
+
+        <div className="footer" style={{marginTop:16}}>
+          El cálculo es reflejado según los datos actuales disponibles a fecha de 09/2025 ,aún así no sustituye asesoramiento profesional. | Viking V.1 - 2025 | ExtractDataHub · Next.js en Vercel
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // --- BMC: widget flotante global (carga el script una vez)
 import { useEffect } from "react";
